@@ -2,8 +2,7 @@ import * as React from 'react';
 import { useEffect, useRef } from 'react';
 
 import {
-  ActionsBarButton, ActionsBarInterface, ActionsBarPosition,
-  ActionsBarSeparator, AppsGalleryEntry, BbbPluginSdk, PluginApi,
+  AppsGalleryEntry, BbbPluginSdk, PluginApi,
 } from 'bigbluebutton-html-plugin-sdk';
 import { createIntl, createIntlCache } from 'react-intl';
 import { SessionSharePluginProps } from './types';
@@ -132,6 +131,12 @@ function SessionSharePlugin({
 
     const supportsAppsGallery = typeof pluginApi.setAppsGalleryItems === 'function';
 
+    const bbb3PluginApi = pluginApi as PluginApi & {
+      setActionButtonDropdownItems?: (
+        items: unknown[]
+      ) => string[];
+    };
+
     if (supportsAppsGallery) {
       // BBB 4.0 -> Apps Gallery
       const appsGalleryEntry = new AppsGalleryEntry({
@@ -147,24 +152,28 @@ function SessionSharePlugin({
       pluginApi.setAppsGalleryItems([
         appsGalleryEntry,
       ]);
-    } else {
-      // BBB 3.0 -> Action bar
-      const buttonToUserListItem: ActionsBarInterface = new ActionsBarButton({
-        icon: {
-          iconName: 'add',
-        },
+    } else if (
+      typeof bbb3PluginApi.setActionButtonDropdownItems
+        === 'function'
+    ) {
+      // BBB 3.0 -> Action Menu
+      const actionMenuItem = {
+        id: '',
+        type: 'ACTION_BUTTON_DROPDOWN_OPTION',
+        label,
+        icon: 'add',
         tooltip: label,
+        dataTest: 'sessionShareActionMenuItem',
+        allowed: true,
         onClick: openShareWindow,
-        position: ActionsBarPosition.RIGHT,
-      });
 
-      const dropdownToUserListItem: ActionsBarInterface = new ActionsBarSeparator({
-        position: ActionsBarPosition.RIGHT,
-      });
+        setItemId(id: string) {
+          this.id = `ActionButtonDropdownOption_${id}`;
+        },
+      };
 
-      pluginApi.setActionsBarItems([
-        dropdownToUserListItem,
-        buttonToUserListItem,
+      bbb3PluginApi.setActionButtonDropdownItems([
+        actionMenuItem,
       ]);
     }
 
@@ -172,7 +181,7 @@ function SessionSharePlugin({
       if (supportsAppsGallery) {
         pluginApi.setAppsGalleryItems([]);
       } else {
-        pluginApi.setActionsBarItems([]);
+        bbb3PluginApi.setActionButtonDropdownItems?.([]);
       }
     };
   }, [pluginApi, intl]);
