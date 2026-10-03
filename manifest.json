@@ -4,4 +4,11 @@
   "version": "0.0.2",
   "javascriptEntrypointUrl": "BbbPluginSessionShare.js",
   "localesBaseUrl": "locales"
+   headers: {
+     'Access-Control-Allow-Origin': '*',
+     'Access-Control-Allow-Methods':
+       'GET, POST, PUT, DELETE, PATCH, OPTIONS',
+     'Access-Control-Allow-Headers':
+       'X-Requested-With, content-type, Authorization, ngrok-skip-browser-warning',
+   },
 }
